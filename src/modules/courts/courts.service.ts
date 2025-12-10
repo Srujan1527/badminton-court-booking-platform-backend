@@ -1,4 +1,4 @@
-import { query } from "../config/db";
+import { query } from "../../config/db";
 import { Courts } from "./courts.controller";
 
 export const getAllCourtsService = async () => {
