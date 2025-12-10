@@ -4,6 +4,9 @@ import dotenv from "dotenv";
 import cors from "cors";
 import courtsRouter from "./modules/courts/courts.routes";
 import equipmentsRouter from "./modules/equipment/equipment.routes";
+import coachesRouter from "./modules/coaches/coaches.routes";
+import adminRouter from "./modules/admin/admin.routes";
+
 dotenv.config();
 
 const app = express();
@@ -20,6 +23,8 @@ app.get("/health", (req: Request, res: Response) =>
 
 app.use("/api/courts", courtsRouter);
 app.use("/api/equipments", equipmentsRouter);
+app.use("/api/coaches", coachesRouter);
+app.use("/api/admin", adminRouter);
 
 app.listen(PORT, () => {
   console.log(`Server is running on port:${PORT}`);
