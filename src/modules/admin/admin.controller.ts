@@ -2,6 +2,8 @@ import {
   createCoachService,
   createCourtsService,
   createEquipmentsService,
+  createPricingRuleService,
+  getAllPricingRulesService,
   setCoachAvailabilityService,
   SlotInput,
 } from "./admin.service";
@@ -148,5 +150,94 @@ export const setCoachAvailabilityController = async (
     return res
       .status(500)
       .json({ message: "Failed to set coach availability" });
+  }
+};
+
+export const createPricingRuleController = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const {
+      name,
+      appliesTo,
+      isWeekend,
+      startHour,
+      endHour,
+      indoorOnly,
+      ruleType,
+      value,
+      isActive,
+    } = req.body;
+
+    if (!name || typeof name !== "string") {
+      return res.status(400).json({ message: "name is required" });
+    }
+
+    const validTargets = ["COURT", "EQUIPMENT", "COACH", "OVERALL"];
+    if (!validTargets.includes(appliesTo)) {
+      return res.status(400).json({
+        message: "appliesTo must be one of COURT, EQUIPMENT, COACH, OVERALL",
+      });
+    }
+
+    const validRuleTypes = ["MULTIPLIER", "FLAT"];
+    if (!validRuleTypes.includes(ruleType)) {
+      return res.status(400).json({
+        message: "ruleType must be MULTIPLIER or FLAT",
+      });
+    }
+
+    if (typeof value !== "number") {
+      return res.status(400).json({ message: "value must be a number" });
+    }
+
+    if (startHour != null && (startHour < 0 || startHour > 23)) {
+      return res
+        .status(400)
+        .json({ message: "startHour must be between 0 and 23" });
+    }
+
+    if (endHour != null && (endHour < 1 || endHour > 24)) {
+      return res
+        .status(400)
+        .json({ message: "endHour must be between 1 and 24" });
+    }
+
+    if (startHour != null && endHour != null && !(startHour < endHour)) {
+      return res.status(400).json({
+        message: "startHour must be less than endHour when both are provided",
+      });
+    }
+
+    const rule = await createPricingRuleService({
+      name,
+      appliesTo,
+      isWeekend: isWeekend ?? null,
+      startHour: startHour ?? null,
+      endHour: endHour ?? null,
+      indoorOnly: indoorOnly ?? null,
+      ruleType,
+      value,
+      isActive: isActive ?? true,
+    });
+
+    return res.status(201).json(rule);
+  } catch (error) {
+    console.error("Error in createPricingRuleController:", error);
+    return res.status(500).json({ message: "Failed to create pricing rule" });
+  }
+};
+
+export const getAllPricingRulesController = async (
+  _req: Request,
+  res: Response
+) => {
+  try {
+    const rules = await getAllPricingRulesService();
+    return res.status(200).json(rules);
+  } catch (error) {
+    console.error("Error in getAllPricingRulesController:", error);
+    return res.status(500).json({ message: "Failed to fetch pricing rules" });
   }
 };

@@ -92,3 +92,80 @@ export const setCoachAvailabilityService = async (
     throw err;
   }
 };
+
+export type CreatePricingRuleInput = {
+  name: string;
+  appliesTo: "COURT" | "EQUIPMENT" | "COACH" | "OVERALL";
+  isWeekend: boolean | null;
+  startHour: number | null;
+  endHour: number | null;
+  indoorOnly: boolean | null;
+  ruleType: "MULTIPLIER" | "FLAT";
+  value: number;
+  isActive: boolean;
+};
+
+export const createPricingRuleService = async (
+  payload: CreatePricingRuleInput
+) => {
+  const result = await query(
+    `
+    INSERT INTO pricing_rules
+      (name, applies_to, is_weekend, start_hour, end_hour, indoor_only, rule_type, value, is_active)
+    VALUES
+      ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+    RETURNING id, name, applies_to, is_weekend, start_hour, end_hour, indoor_only, rule_type, value, is_active
+  `,
+    [
+      payload.name,
+      payload.appliesTo,
+      payload.isWeekend,
+      payload.startHour,
+      payload.endHour,
+      payload.indoorOnly,
+      payload.ruleType,
+      payload.value,
+      payload.isActive,
+    ]
+  );
+
+  const row = result.rows[0];
+
+  return {
+    id: row.id,
+    name: row.name,
+    appliesTo: row.applies_to,
+    isWeekend: row.is_weekend,
+    startHour: row.start_hour,
+    endHour: row.end_hour,
+    indoorOnly: row.indoor_only,
+    ruleType: row.rule_type,
+    value: Number(row.value),
+    isActive: row.is_active,
+  };
+};
+
+export const getAllPricingRulesService = async () => {
+  const result = await query(
+    `
+    SELECT
+      id, name, applies_to, is_weekend, start_hour, end_hour,
+      indoor_only, rule_type, value, is_active
+    FROM pricing_rules
+    ORDER BY id ASC
+  `
+  );
+
+  return result.rows.map((row) => ({
+    id: row.id,
+    name: row.name,
+    appliesTo: row.applies_to,
+    isWeekend: row.is_weekend,
+    startHour: row.start_hour,
+    endHour: row.end_hour,
+    indoorOnly: row.indoor_only,
+    ruleType: row.rule_type,
+    value: Number(row.value),
+    isActive: row.is_active,
+  }));
+};
