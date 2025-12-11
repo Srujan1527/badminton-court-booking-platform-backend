@@ -376,4 +376,4 @@ enforces conflict checks for time & resources
 
 applies dynamic pricing with rules
 
-stores detailed booking + price breakdown in
+stores detailed booking + price breakdown in DB
