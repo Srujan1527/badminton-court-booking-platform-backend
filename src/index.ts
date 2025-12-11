@@ -7,6 +7,7 @@ import equipmentsRouter from "./modules/equipment/equipment.routes";
 import coachesRouter from "./modules/coaches/coaches.routes";
 import adminRouter from "./modules/admin/admin.routes";
 import availabilityRouter from "./modules/availability/availability.routes";
+import bookingsRouter from "./modules/bookings/bookings.routes";
 dotenv.config();
 
 const app = express();
@@ -26,6 +27,7 @@ app.use("/api/equipments", equipmentsRouter);
 app.use("/api/coaches", coachesRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/availability", availabilityRouter);
+app.use("/api/bookings", bookingsRouter);
 
 app.listen(PORT, () => {
   console.log(`Server is running on port:${PORT}`);
