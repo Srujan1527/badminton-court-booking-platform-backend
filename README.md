@@ -1,4 +1,4 @@
-# Sports Facility Booking Platform � Backend
+# Sports Facility Booking Platform - Backend
 
 Reliable REST API for managing courts, equipment, coaches, and dynamic pricing for badminton facilities.
 
@@ -72,4 +72,23 @@ Default base URL: `http://localhost:8080/api`.
 3. Create bookings, then experiment with pricing rules and availability windows.
 4. Use seeded IDs for a quick start (see `src/config/seed.sql`).
 
+## DB Design
+
+The schema treats every real-world resource as its own first-class entity and only introduces linking tables for many-to-many relationships or time-bound events.
+
+### Core entities
+- `bookings`: single source of truth for user info, booked time range, `court_id`, total price, and `booking_status` (`CONFIRMED`, `CANCELLED`, `WAITLIST`).
+- `courts`, `equipment_types`, `coaches`: master tables with their own base pricing fields (`base_hourly_rate`, `price_per_unit`, `hourly_rate`) and `is_active` flags so resources can be soft-disabled without breaking references.
+- `booking_equipments`, `booking_coaches`: link tables that associate optional gear or coaches with a booking; modeled so the platform can support multiple equipment rows or even multiple coaches per booking later.
+- `coach_availabilities`: stores `coach_id`, `day_of_week`, `start_hour`, and `end_hour` so availability logic stays in the database instead of hard-coded in services.
+- `pricing_rules`: data-driven pricing engine powered by `rule_target` (`COURT`, `EQUIPMENT`, `COACH`, `OVERALL`) and `rule_type` (`MULTIPLIER`, `FLAT`) enums, plus optional filters (`is_weekend`, `start_hour`, `end_hour`, `indoor_only`).
+
+### Pricing flow
+Base amounts are computed first:
+```text
+Base court price     = court hourly rate x duration
+Base equipment price = sum(unit price x quantity)
+Base coach price     = coach hourly rate x duration (if selected)
+```
+Active pricing rules are then filtered by booking context (weekend vs weekday, time overlap, indoor/outdoor). Matching rules either multiply the relevant base or apply a flat adjustment (e.g., +50 peak surcharge, -30 night discount). Each adjustment is captured in a `PriceBreakdown` response so reviewers can trace how the total was produced. Because the behavior lives in data, changing business rules only requires inserting or updating `pricing_rules` records, so no core booking code changes are needed.
 
